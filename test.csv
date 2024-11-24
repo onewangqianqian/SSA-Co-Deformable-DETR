@@ -1,0 +1,5 @@
+,RandomCrop,Corrupt,PhotoMetricDistortion,RandomAffine
+RandomCrop,0.73,0.719,0.724,0.729
+Corrupt,0.719,0.719,0.713,0.704
+PhotoMetricDistortion,0.724,0.713,0.729,0.737
+RandomAffine,0.729,0.704,0.737,0.728
