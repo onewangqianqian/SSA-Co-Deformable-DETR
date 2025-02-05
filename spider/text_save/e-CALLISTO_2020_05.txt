@@ -1,0 +1,42 @@
+# Product: e-CALLISTO_2020_05.txt
+# Prepared by PI e-Callisto
+# Please send comments and suggestions to monstein(at)irsol.ch
+#
+# Missing data: ####-####
+#
+#Date		Time		Type	Stations
+#-------------------------------------------------------------------------------
+20200501	##:##-##:##
+20200502	##:##-##:##
+20200503	##:##-##:##
+20200504	##:##-##:##
+20200505	##:##-##:##
+20200506	##:##-##:##
+20200507	##:##-##:##
+20200508	##:##-##:##
+20200509	##:##-##:##
+20200510	##:##-##:##
+20200511	##:##-##:##
+20200512	##:##-##:##
+20200513	##:##-##:##
+20200514	23:25-23:25	III	ALASKA-COHOE
+20200515	##:##-##:##
+20200516	##:##-##:##
+20200517	##:##-##:##
+20200518	##:##-##:##
+20200519	##:##-##:##
+20200520	##:##-##:##
+20200521	##:##-##:##
+20200522	##:##-##:##
+20200523	##:##-##:##
+20200524	##:##-##:##
+20200525	##:##-##:##
+20200526	##:##-##:##
+20200527	##:##-##:##
+20200528	##:##-##:##
+20200529	07:23-07:27	II	ALMATY, Australia-ASSA, DENMARK, GAURI, GLASGOW, GREENLAND, KRIM, SSRT, SWISS-HEITERSWIL, SWISS-Landschlacht, 
+20200529	10:45-10:49	III	ALMATY, AUSTRIA-OE3FLB, DENMARK, GLASGOW, GREENLAND, HUMAIN, KRIM, MRO, SWISS-HEITERSWIL, SWISS-Landschlacht, SWISS-MUHEN, TRIEST 
+20200529	11:19-11:20	III	GLASGOW, GREENLAND, SWISS-Landschlacht, 
+20200529	16:47-16:55	III	GREENLAND
+20200530	##:##-##:##
+20200531	##:##-##:##

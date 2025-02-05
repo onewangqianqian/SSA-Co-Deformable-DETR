@@ -1,0 +1,10 @@
+# Product: e-CALLISTO_2020_02.txt
+# Prepared by PI e-Callisto
+# Please send comments and suggestions to monstein(at)irsol.ch
+#
+# Missing data: ####-####
+#
+#Date		Time		Type	Stations
+#-------------------------------------------------------------------------------
+No bursts observed
+
