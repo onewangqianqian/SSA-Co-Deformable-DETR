@@ -35,6 +35,15 @@ The COCO dataset should be organized as:
     └── val2017
       
 ```
+Since large folders cannot be accessed on GitHub, we put the data set in Google Cloud Disk. You need to run the following code to download the dataset and put it into your project.
+```shell
+mkdir data
+cd data
+weget https://drive.google.com/file/d/1v3zkDgHatldortmoB8QE6Xw2NcyPOaU3/view?usp=drive_link
+unzip cocolike_bur4_COCO.zip
+cd ..
+```
+
 ### Get more data
 In this article, we only collected solar radio bursts from August 2020 to August 2022. If you need more data, we provide a crawler script so that you can get more data.
 Run the following code:
