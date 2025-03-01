@@ -5,6 +5,21 @@ We implement SSA-Co-DETR using [MMDetection V2.25.3](https://github.com/open-mml
 The source code of MMdetection has been included in this repo and you only need to build MMCV following [official instructions](https://github.com/open-mmlab/mmcv/tree/v1.5.0#installation).
 We test our models under ```python=3.7.11,pytorch=1.11.0,cuda=11.3```. Other versions may not be compatible. 
 
+If you are a novice in using a computer, you may encounter some difficulties at this step.
+Here, we provide some commands to help you complete the configuration of the environment. However, due to the different machine environments of each person, there may be errors in some steps. At this time, don't panic. Observe the error message and then correct it accordingly. (PS: Throwing the error message to GPT may also help you.)
+
+```shell
+conda create --name openmmlab python=3.7 -y
+#You need to install Anaconda first here.
+conda install pytorch torchvision -c pytorch
+# Here, conda will install PyTorch according to your CUDA version. If the CUDA version is too low, there may be an error, and at this time, you need to upgrade your CUDA version.
+pip install -U openmim
+mim install mmengine
+mim install mmcv-full==1.5.0
+git clone https://github.com/onewangqianqian/SSA-Co-Deformable-DETR.git
+cd SSA-Co-Deformable-DETR
+pip install -v -e.
+```
 ### Data
 Checkpoints: https://drive.google.com/file/d/1WUSyoPWeNq98HH8me8kl5qTfW9_bnORN/view?usp=drive_link.
 
