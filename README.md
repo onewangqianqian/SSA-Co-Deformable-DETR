@@ -9,7 +9,7 @@ If you are a novice in using a computer, you may encounter some difficulties at 
 Here, we provide some commands to help you complete the configuration of the environment. However, due to the different machine environments of each person, there may be errors in some steps. At this time, don't panic. Observe the error message and then correct it accordingly. (PS: Throwing the error message to GPT may also help you.)
 
 ```shell
-conda create --name openmmlab python=3.7 -y
+conda create --name SSA python=3.7 -y
 #You need to install Anaconda first here.
 conda install pytorch torchvision -c pytorch
 # Here, conda will install PyTorch according to your CUDA version. If the CUDA version is too low, there may be an error, and at this time, you need to upgrade your CUDA version.
