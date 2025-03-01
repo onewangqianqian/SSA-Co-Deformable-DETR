@@ -20,14 +20,28 @@ The COCO dataset should be organized as:
     └── val2017
       
 ```
+###爬虫
+In this article, we only collected solar radio bursts from August 2020 to August 2022. If you need more data, we provide a crawler script so that you can get more data.
+Run the following code:
+```shell
+python spider/spider-1.py
+```
+
+### quick test
+```shell
+mkdir ck
+cd ck
+weget https://drive.google.com/file/d/1WUSyoPWeNq98HH8me8kl5qTfW9_bnORN/view?usp=drive_link.
+python tools/train.py projects/configs/SSA_co_deformable_detr/SSA_co_deformable_detr_r50_1x_coco.py ck/SSA-Co-DETR.pth
+```
 
 ### Training
-Train SSA_co_deformable_detr + ResNet-50 with 8 GPUs:
+Train SSA_co_deformable_detr + ResNet-50 :
 ```shell
-sh tools/dist_train.sh projects/configs/SSA_co_deformable_detr/SSA_co_deformable_detr_r50_1x_coco.py 8 path_to_exp
+python tools/train.py projects/configs/SSA_co_deformable_detr/SSA_co_deformable_detr_r50_1x_coco.py
 ```
 test:
 ```shell
-sh tools/dist_test.sh projects/configs/SSA_co_deformable_detr/SSA_co_deformable_detr_r50_1x_coco.py 8 path_to_exp
+python tools/test.py projects/configs/SSA_co_deformable_detr/SSA_co_deformable_detr_r50_1x_coco.py
 ```
 
