@@ -20,7 +20,7 @@ The COCO dataset should be organized as:
     └── val2017
       
 ```
-###爬虫
+###Get more data
 In this article, we only collected solar radio bursts from August 2020 to August 2022. If you need more data, we provide a crawler script so that you can get more data.
 Run the following code:
 ```shell
