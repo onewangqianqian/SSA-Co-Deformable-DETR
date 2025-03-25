@@ -21,7 +21,7 @@ cd SSA-Co-Deformable-DETR
 pip install -v -e.
 ```
 ### Data
-Checkpoints: https://drive.google.com/file/d/1WUSyoPWeNq98HH8me8kl5qTfW9_bnORN/view?usp=drive_link.
+Checkpoints: [https://drive.google.com/file/d/1WUSyoPWeNq98HH8me8kl5qTfW9_bnORN/view?usp=drive_link.](https://drive.google.com/file/d/1WSFmWeek-Hmxjk9pw9fQhiQ0FAx-VoAF/view?usp=sharing)
 
 Solar Radio Burst Dataset: https://drive.google.com/file/d/1v3zkDgHatldortmoB8QE6Xw2NcyPOaU3/view?usp=drive_link. We are addressing the long-tail issue of the dataset in our next steps, and the dataset will be made publicly available upon completion (original data source: https://www.e-callisto.org/index.html).
 
