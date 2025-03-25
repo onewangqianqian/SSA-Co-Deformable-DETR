@@ -33,6 +33,94 @@ def inverse_sigmoid(x, eps=1e-5):
     x2 = (1 - x).clamp(min=eps)
     return torch.log(x1 / x2)
 
+class Attention(nn.Module):
+    def __init__(self, in_planes, ratio, K, temprature=30, init_weight=True):
+        super().__init__()
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.temprature = temprature
+        assert in_planes > ratio
+        hidden_planes = in_planes // ratio
+        self.net = nn.Sequential(
+            nn.Conv2d(in_planes, hidden_planes, kernel_size=1, bias=False),
+            nn.ReLU(),
+            nn.Conv2d(hidden_planes, K, kernel_size=1, bias=False)
+        )
+
+        if (init_weight):
+            self._initialize_weights()
+
+    def update_temprature(self):
+        if (self.temprature > 1):
+            self.temprature -= 1
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            if isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, x):
+        att = self.avgpool(x)  # bs,dim,1,1
+        att = self.net(att).view(x.shape[0], -1)  # bs,K
+        return F.softmax(att / self.temprature, -1)
+
+
+class DynamicConv(nn.Module):
+    def __init__(self, in_planes, out_planes, kernel_size, stride, padding=0, dilation=1, grounps=1, bias=True, K=4,
+                 temprature=30, ratio=4, init_weight=True):
+        super().__init__()
+        self.in_planes = in_planes
+        self.out_planes = out_planes
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.dilation = dilation
+        self.groups = grounps
+        self.bias = bias
+        self.K = K
+        self.init_weight = init_weight
+        self.attention = Attention(in_planes=in_planes, ratio=ratio, K=K, temprature=temprature,
+                                   init_weight=init_weight)
+
+        self.weight = nn.Parameter(torch.randn(K, out_planes, in_planes // grounps, kernel_size, kernel_size),
+                                   requires_grad=True)
+        if (bias):
+            self.bias = nn.Parameter(torch.randn(K, out_planes), requires_grad=True)
+        else:
+            self.bias = None
+
+        if (self.init_weight):
+            self._initialize_weights()
+
+        # TODO 初始化
+
+    def _initialize_weights(self):
+        for i in range(self.K):
+            nn.init.kaiming_uniform_(self.weight[i])
+
+    def forward(self, x):
+        bs, in_planels, h, w = x.shape
+        softmax_att = self.attention(x)  # bs,K
+        x = x.view(1, -1, h, w)
+        weight = self.weight.view(self.K, -1)  # K,-1
+        aggregate_weight = torch.mm(softmax_att, weight).view(bs * self.out_planes, self.in_planes // self.groups,
+                                                              self.kernel_size, self.kernel_size)  # bs*out_p,in_p,k,k
+
+        if (self.bias is not None):
+            bias = self.bias.view(self.K, -1)  # K,out_p
+            aggregate_bias = torch.mm(softmax_att, bias).view(-1)  # bs,out_p
+            output = F.conv2d(x, weight=aggregate_weight, bias=aggregate_bias, stride=self.stride, padding=self.padding,
+                              groups=self.groups * bs, dilation=self.dilation)
+        else:
+            output = F.conv2d(x, weight=aggregate_weight, bias=None, stride=self.stride, padding=self.padding,
+                              groups=self.groups * bs, dilation=self.dilation)
+
+        output = output.view(bs, self.out_planes, h, w)
+        return output
 
 
 @TRANSFORMER_LAYER_SEQUENCE.register_module()
@@ -129,6 +217,7 @@ class CoDeformableDetrTransformerDecoder(TransformerLayerSequence):
         return output, reference_points
 
 
+
 @TRANSFORMER.register_module()
 class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
     """Implements the DeformableDETR transformer.
@@ -167,15 +256,15 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
                 self.pos_feats_trans = nn.ModuleList()
                 self.pos_feats_norm = nn.ModuleList()
                 for i in range(self.num_co_heads):
-                    self.aux_pos_trans.append(nn.Linear(self.embed_dims*2, self.embed_dims*2))
-                    self.aux_pos_trans_norm.append(nn.LayerNorm(self.embed_dims*2))
+                    self.aux_pos_trans.append(nn.Linear(self.embed_dims * 2, self.embed_dims * 2))
+                    self.aux_pos_trans_norm.append(nn.LayerNorm(self.embed_dims * 2))
                     if self.with_coord_feat:
                         self.pos_feats_trans.append(nn.Linear(self.embed_dims, self.embed_dims))
                         self.pos_feats_norm.append(nn.LayerNorm(self.embed_dims))
-        self.SSA_Adapt=SSA_Adapt(in_planes=256,out_planes=256,kernel_size=3,stride=1,padding=1,bias=False)
-
-
-
+        self.DynamicConv0 = DynamicConv(in_planes=256, out_planes=256, kernel_size=3, stride=1, padding=1, bias=False)
+        self.DynamicConv1 = DynamicConv(in_planes=256, out_planes=256, kernel_size=3, stride=1, padding=1, bias=False)
+        self.DynamicConv2 = DynamicConv(in_planes=256, out_planes=256, kernel_size=3, stride=1, padding=1, bias=False)
+        self.DynamicConv3 = DynamicConv(in_planes=256, out_planes=256, kernel_size=3, stride=1, padding=1, bias=False)
 
     def get_proposal_pos_embed(self,
                                proposals,
@@ -186,7 +275,7 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
         scale = 2 * math.pi
         dim_t = torch.arange(
             num_pos_feats, dtype=torch.float32, device=proposals.device)
-        dim_t = temperature**(2 * (dim_t // 2) / num_pos_feats)
+        dim_t = temperature ** (2 * (dim_t // 2) / num_pos_feats)
         # N, L, 4
         proposals = proposals.sigmoid() * scale
         # N, L, 4, 128
@@ -196,7 +285,21 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
                           dim=4).flatten(2)
         return pos
 
+    def unclose_conv_close(self, outs):
 
+        num_conv = len(outs)
+        for lvl in range(num_conv):
+            outs[lvl] = getattr(self, f"DynamicConv{lvl}")(outs[lvl])
+        # draw_feature_map(outs)
+        feat_flatten = []
+        for lvl, feat in enumerate(outs):
+            feat = feat.flatten(2)
+            feat = feat.transpose(1, 2)
+            feat_flatten.append(feat)
+        feat_flatten = torch.cat(feat_flatten, 1)
+        feat_flatten = feat_flatten.permute(1, 0, 2)
+
+        return feat_flatten
 
     def forward(self,
                 mlvl_feats,
@@ -280,7 +383,7 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
         spatial_shapes = torch.as_tensor(
             spatial_shapes, dtype=torch.long, device=feat_flatten.device)
         level_start_index = torch.cat((spatial_shapes.new_zeros(
-            (1, )), spatial_shapes.prod(1).cumsum(0)[:-1]))
+            (1,)), spatial_shapes.prod(1).cumsum(0)[:-1]))
         valid_ratios = torch.stack(
             [self.get_valid_ratio(m) for m in mlvl_masks], 1)
 
@@ -306,17 +409,17 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
 
             **kwargs)
 
-
         outs = []
         num_level = len(mlvl_feats)
         start = 0
         for lvl in range(num_level):
             bs, c, h, w = mlvl_feats[lvl].shape
-            end = start + h*w
+            end = start + h * w
             feat = memory[start:end].permute(1, 2, 0).contiguous()
             start = end
             outs.append(feat.reshape(bs, c, h, w))
-        memory=self.SSA_Adapt(outs) ## SSA
+        memory = self.unclose_conv_close(outs)  ## 在这个函数里面是加入的卷积
+
         # draw_feature_map(outs)
 
         memory = memory.permute(1, 0, 2)
@@ -379,11 +482,11 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
         inter_references_out = inter_references
         if self.as_two_stage:
             if return_encoder_output:
-                return inter_states, init_reference_out,\
-                    inter_references_out, enc_outputs_class,\
-                    enc_outputs_coord_unact, memory                
-            return inter_states, init_reference_out,\
-                inter_references_out, enc_outputs_class,\
+                return inter_states, init_reference_out, \
+                    inter_references_out, enc_outputs_class, \
+                    enc_outputs_coord_unact, memory
+            return inter_states, init_reference_out, \
+                inter_references_out, enc_outputs_class, \
                 enc_outputs_coord_unact
         if return_encoder_output:
             return inter_states, init_reference_out, \
@@ -421,12 +524,12 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
         spatial_shapes = torch.as_tensor(
             spatial_shapes, dtype=torch.long, device=feat_flatten.device)
         level_start_index = torch.cat((spatial_shapes.new_zeros(
-            (1, )), spatial_shapes.prod(1).cumsum(0)[:-1]))
+            (1,)), spatial_shapes.prod(1).cumsum(0)[:-1]))
         valid_ratios = torch.stack(
             [self.get_valid_ratio(m) for m in mlvl_masks], 1)
 
         feat_flatten = feat_flatten.permute(1, 0, 2)  # (H*W, bs, embed_dims)
-        
+
         memory = feat_flatten
         memory = memory.permute(1, 0, 2)
         bs, _, c = memory.shape
@@ -446,6 +549,7 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
         # decoder
         query = query.permute(1, 0, 2)
 
+        # memory=self.ExternalAttention(memory) ## 修改的地方 在memory后加一个attention
         memory = memory.permute(1, 0, 2)
 
         query_pos = query_pos.permute(1, 0, 2)
@@ -466,7 +570,6 @@ class CoDeformableDetrTransformer_conv(DeformableDetrTransformer):
         inter_references_out = inter_references
         return inter_states, init_reference_out, \
             inter_references_out
-
 
 @TRANSFORMER.register_module()
 class CoDeformableDetrTransformer(DeformableDetrTransformer):
@@ -511,6 +614,8 @@ class CoDeformableDetrTransformer(DeformableDetrTransformer):
                     if self.with_coord_feat:
                         self.pos_feats_trans.append(nn.Linear(self.embed_dims, self.embed_dims))
                         self.pos_feats_norm.append(nn.LayerNorm(self.embed_dims))
+
+
 
 
     def get_proposal_pos_embed(self,
