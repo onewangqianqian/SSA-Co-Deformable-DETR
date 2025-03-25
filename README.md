@@ -55,7 +55,7 @@ python spider/spider-1.py
 ```shell
 mkdir ck
 cd ck
-weget https://drive.google.com/file/d/1WUSyoPWeNq98HH8me8kl5qTfW9_bnORN/view?usp=drive_link.
+weget https://drive.google.com/file/d/1WUSyoPWeNq98HH8me8kl5qTfW9_bnORN/view?usp=drive_link
 cd ..
 python tools/train.py projects/configs/SSA_co_deformable_detr/SSA_co_deformable_detr_r50_1x_coco.py ck/SSA-Co-DETR.pth
 ```
