@@ -3,7 +3,7 @@
 ### Install
 We implement SSA-Co-DETR using [MMDetection V2.25.3](https://github.com/open-mmlab/mmdetection/releases/tag/v2.25.3) and [MMCV V1.5.0](https://github.com/open-mmlab/mmcv/releases/tag/v1.5.0).
 The source code of MMdetection has been included in this repo and you only need to build MMCV following [official instructions](https://github.com/open-mmlab/mmcv/tree/v1.5.0#installation).
-We test our models under ```python=3.7.11,pytorch=1.11.0,cuda=11.3```. Other versions may not be compatible. 
+We test our models under ```python=3.7.11,pytorch=1.11.0,cuda=11.3```. Other versions may not be compatible. teada
 
 If you are a novice in using a computer, you may encounter some difficulties at this step.
 Here, we provide some commands to help you complete the configuration of the environment. However, due to the different machine environments of each person, there may be errors in some steps. At this time, don't panic. Observe the error message and then correct it accordingly. (PS: Throwing the error message to GPT may also help you.)
